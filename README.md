@@ -1,0 +1,2 @@
+# Sistema_de_Digitalizacion_de_Facturas_para_Analisis_de_Gastos
+Sistema automatizado de digitalización y análisis de facturas desarrollado en Python.  Extrae texto de imágenes y PDFs mediante PyMuPDF y PaddleOCR, estructura la información usando  la API de Gemini y almacena los datos en SQLite y se visualiza en Power Bi para análisis de gastos.  Soporta facturas escaneadas, fotografiadas y documentos PDF
