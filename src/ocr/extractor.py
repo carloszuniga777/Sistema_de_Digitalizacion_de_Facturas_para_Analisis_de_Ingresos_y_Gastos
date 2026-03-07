@@ -1,5 +1,5 @@
 import fitz                                              # PyMuPDF
-from src.utils.clean_ocr import limpiar_texto_ocr
+from utils.clean_ocr import limpiar_texto_ocr
 from paddleocr import PaddleOCR
 import logging                                           # Imprime print() en produccion 
 

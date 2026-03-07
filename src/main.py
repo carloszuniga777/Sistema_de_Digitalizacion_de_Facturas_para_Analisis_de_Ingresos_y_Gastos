@@ -5,16 +5,17 @@ os.environ["PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK"] = "True"   # Desactiva la ve
                                                                # (un chequeo de red que no es necesario para usar el OCR Paddleocr). 
                                                                # El reconocimiento de texto sigue funcionando igual.         
 
-from src.ocr.extractor          import InvoiceOCRExtractor
-from src.utils.file_manager     import obtener_facturas
-from src.utils.data_transformer import csv_a_dataframe
-from src.utils.logger           import configurar_logger
-from src.ia.processor           import estructurar_texto
-from src.database.repository    import cargar_sql
+from ocr.extractor          import InvoiceOCRExtractor
+from utils.file_manager     import obtener_facturas
+from utils.data_transformer import csv_a_dataframe
+from utils.logger           import configurar_logger
+from ia.processor           import estructurar_texto
+from database.repository    import cargar_sql
+
 import asyncio
-import nest_asyncio
 import logging
-nest_asyncio.apply()  # Necesario para ejecutar asyncio en Positron/Jupyter/IPython
+import nest_asyncio
+nest_asyncio.apply()  # Necesario para ejecutar asyncio en Positron/Jupyter/IPython  | # En Positron: necesario y En VSCode: no hace nada, no rompe nada
 
 
 
@@ -65,7 +66,7 @@ async def main():
     df = csv_a_dataframe(texto_estructurado)
 
 
-    if df is None:
+    if df.empty or df is None:
         logger.warning("⚠️ No se pudo procesar el CSV.")
         return
 
@@ -86,5 +87,5 @@ async def main():
 if __name__ == "__main__":
     df, texto_no_estructurado, texto_estructurado = asyncio.run(main())
 
-    if not df:
+    if df.empty or df is None:
         logger.error("❌ El proceso no completó exitosamente.")

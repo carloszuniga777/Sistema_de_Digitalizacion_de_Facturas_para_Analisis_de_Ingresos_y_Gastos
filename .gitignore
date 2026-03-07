@@ -9,8 +9,8 @@ venv/
 ENV/
 
 # IDE settings
-.vscode/
 .idea/
+.vscode
 
 # Environment variables
 .env
@@ -19,3 +19,4 @@ ENV/
 # Ignorar contenido de las carpetas
 logs/**
 
+README.html

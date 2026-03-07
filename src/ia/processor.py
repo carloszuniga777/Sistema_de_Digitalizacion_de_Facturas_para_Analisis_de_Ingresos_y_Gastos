@@ -2,7 +2,7 @@ import os
 import asyncio
 from google import genai        # Geminis
 from google.genai import types
-from src.utils.prompts import prompt, instrucciones_sistema
+from utils.prompts import prompt, instrucciones_sistema
 from dotenv import load_dotenv               # Carga las variables de entorno
 import logging                               # Imprime print() en produccion 
 
