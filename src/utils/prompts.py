@@ -1,11 +1,19 @@
+import os
+from dotenv import load_dotenv
+
+# Cargar las variables del archivo .env
+load_dotenv()
+
+RTN_PRINCIPAL = os.getenv("RTN_PRINCIPAL")
+NOMBRE_PRINCIPAL = os.getenv("NOMBRE_PRINCIPAL")
+
+
 instrucciones_sistema = (
     "Eres un experto en extracción de datos de facturas. "
     "Devuelve solo el CSV sin explicaciones ni mensajes adicionales. "
     "Si no puedes extraer datos, devuelve exactamente la palabra 'error' sin comillas."
 )
 
-
-# TODO: Modificar el promopt en tipo de factura para incluir la informacion real 
 
 prompt = """
 Eres un sistema especializado en extracción estructurada de facturas nacionales e internacionales.
@@ -76,6 +84,8 @@ No agregues explicaciones ni comentarios.
         3. “Amount due”
         4. “Grand total”
         5. “Total Neto Recibido”
+        6. “Gran total”
+        7. “Total Final”
     ✅ Convierte al formato español:
 
     ✅ Usa punto como separador decimal.
@@ -93,11 +103,11 @@ No agregues explicaciones ni comentarios.
 5. moneda
     ✅ Determina la moneda siguiendo este orden lógico:
         1. Si aparece EUR o € → euros
-        2. Si aparece USD o $ y el país no es Honduras → dolares
+        2. Si aparece USD o $ y el país no es Honduras → dólares 
         3. Si aparece LPS o L y el contexto es Honduras → lempiras
         4. Si aparece solo “$”:
         5. Si el proveedor o cliente está en Honduras → lempiras
-        6. Si el documento está en inglés y el proveedor no es de Honduras → dolares 
+        6. Si el documento está en inglés y el proveedor no es de Honduras → dólares  
         7. Si el documento está en español y el proveedor es de Honduras → lempiras 
         7. Si no es determinable con razonable certeza → otros
         8. No inventes moneda.
@@ -137,7 +147,7 @@ No agregues explicaciones ni comentarios.
 
                 2. El RTN asociado al documento, identificado junto al CAI o como RTN del emisor, es exactamente:
 
-                    - 080119750004
+                    - {RTN_PRINCIPAL}
 
             Ambas condiciones deben cumplirse al mismo tiempo.
             Si falta una de ellas, no clasifiques como Ingresos.     
@@ -147,9 +157,9 @@ No agregues explicaciones ni comentarios.
 
             Clasifica como "Gastos" cuando:
 
-            - El proveedor NO corresponde a Ana
+            - El proveedor NO corresponde a {NOMBRE_PRINCIPAL}
                 Y
-            - El RTN del proveedor NO es 080119750004
+            - El RTN del proveedor NO es {RTN_PRINCIPAL}
 
 
         Regla 3 — Prioridad
@@ -200,11 +210,82 @@ No agregues explicaciones ni comentarios.
             - Devuélvelo respetando el formato XXX-XXX-XX-XXXXXXXX
             - Si no se encuentra un número con ese patrón, deja el campo vacío.
 
+
+10. categoria
+
+    ✅ Clasifica el gasto en una categoría basándote en el proveedor Y los productos comprados.
+    ✅ Usa el proveedor como primera señal de clasificación. Si el proveedor es reconocible, clasifica directamente.
+    ✅ Si el proveedor no es suficiente, analiza los productos para determinar la categoría.
+    ✅ Devuelve la categoría en español, en minúsculas y sin acentos.
+
+    📌 Categorías disponibles y criterios:
+
+        supermercado
+            - Proveedores: Walmart, La Colonia, El Rey, Supermercados, etc.
+            - Productos: alimentos, bebidas, artículos de limpieza, productos del hogar
+
+        ferreteria
+            - Proveedores: Ferretería, Homex, EPA, etc.
+            - Productos: cemento, varillas, pintura, tornillos, tuberías, herramientas, madera
+
+        farmacia
+            - Proveedores: Farmacia, Droguería, etc.
+            - Productos: medicamentos, vitaminas, insumos médicos, jeringas, guantes
+
+        tecnologia
+            - Proveedores: Office Depot, Dell, HP, Apple, Samsung, tiendas de tecnología
+            - Productos: computadoras, monitores, impresoras, cables, accesorios tecnológicos
+
+        servicios_profesionales
+            - Proveedores: contadores, abogados, consultores, honorarios profesionales
+            - Productos/servicios: consultoría, asesoría, honorarios, servicios legales
+
+        salud
+            - Proveedores: clínicas, hospitales, laboratorios, dentistas, médicos
+            - Productos/servicios: consultas, procedimientos médicos, exámenes
+
+        restaurante_alimentos
+            - Proveedores: restaurantes, panaderías, reposterías, cafeterías
+            - Productos: pan, pasteles, comida preparada, repostería
+
+        agropecuario
+            - Proveedores: agropecuarias, veterinarias
+            - Productos: semillas, fertilizantes, herbicidas, fumigadoras, insumos agrícolas
+
+        muebles_decoracion
+            - Proveedores: mueblerías, decoraciones, tiendas de muebles
+            - Productos: muebles, sillas, mesas, closets, decoración del hogar
+
+        papeleria_oficina
+            - Proveedores: librerías, papelerías, Office Depot
+            - Productos: papel, lapiceros, cuadernos, calculadoras, mochilas, folders
+
+        servicios_basicos
+            - Proveedores: ENEE, SANAA, Hondutel, empresas de telecomunicaciones
+            - Productos/servicios: electricidad, agua, internet, telefonía
+
+        combustible_transporte
+            - Proveedores: gasolineras, talleres, empresas de transporte
+            - Productos/servicios: gasolina, diesel, mantenimiento vehicular, transporte
+
+        software_suscripciones
+            - Proveedores: Amazon, Google, Microsoft, Adobe, Netflix, servicios digitales
+            - Productos/servicios: suscripciones, licencias, servicios en la nube
+
+        reparaciones_mantenimiento
+            - Proveedores: talleres, técnicos, servicios de reparación
+            - Productos/servicios: reparaciones de equipos, mantenimiento, instalaciones
+
+        otros
+            - Cuando no sea posible determinar la categoría con razonable certeza.
+            - No inventes categorías fuera de esta lista.
+
+
 📌 Formato de salida obligatorio
 
 ✅ Siempre incluye exactamente esta cabecera como primera línea (sin repetirla):
 
-    fecha_factura;numero_factura;proveedor;rtn_proveedor;direccion_proveedor;telefono_proveedor;pais_proveedor;nombre_cliente;rtn_cliente;concepto;monto_total;moneda;tipo_factura
+    fecha_factura;numero_factura;proveedor;rtn_proveedor;direccion_proveedor;telefono_proveedor;pais_proveedor;nombre_cliente;rtn_cliente;concepto;monto_total;moneda;tipo_factura;categoria
 
 ✅ Después, genera una línea por cada factura detectada, sin líneas vacías.
 
@@ -214,11 +295,10 @@ No agregues explicaciones ni comentarios.
 
 📌 Ejemplo de salida válida
 
-fecha_factura;numero_factura;proveedor;rtn_proveedor;direccion_proveedor;telefono_proveedor;pais_proveedor;nombre_cliente;rtn_cliente;concepto;monto_total;moneda;tipo_factura
-15/01/2024;000-001-01-00017044;ana;080119750004;;;honduras;Empresa Comercial Del Norte;;recibo honorarios profesionales servicios contables;8500,00;lempiras;Ingresos
-20/01/2024;000-002-01-00004567;supermercado la colonia;08011999000001;;;honduras;Carlos Zuniga;;compra de suministros oficina;1250,50;lempiras;Gastos
-05/02/2024;;amazon services europe sarl;;;;irlanda;Carlos Zuniga;;suscripcion software;19,99;euros;Gastos
-
+fecha_factura;numero_factura;proveedor;rtn_proveedor;direccion_proveedor;telefono_proveedor;pais_proveedor;nombre_cliente;rtn_cliente;concepto;monto_total;moneda;tipo_factura;categoria
+15/01/2024;000-001-01-00017044;Ana;080119750004;;;Honduras;Empresa Comercial Del Norte;;Servicios contables x1;8,500.00;lempiras;Ingresos;servicios_profesionales
+20/01/2024;000-002-01-00004567;Supermercado La Colonia;08011999000001;;;Honduras;Jorge Trochez;;Arroz 50lb x1 | Frijoles 25lb x1 | Aceite 1L x1;1,250.50;lempiras;Gastos;supermercado
+05/02/2024;;Amazon Services Europe Sarl;;;;Irlanda;Jorge Trochez;;Suscripcion software x1;19.99;euros;Gastos;software_suscripciones
 
 📌 **Instrucciones finales**:
 - Devuelve solo el CSV limpio, sin repeticiones de encabezado ni líneas vacías.

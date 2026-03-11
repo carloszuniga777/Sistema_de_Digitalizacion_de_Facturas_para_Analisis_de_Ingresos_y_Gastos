@@ -125,11 +125,7 @@ class InvoiceOCRExtractor:
            # logger.warning(f"⚠️ Baja confianza ({promedio:.2f}), reprocesando con modelo avanzado: {ruta}")
 
             # Se reprocesa la imagen con el modelo server que es mas avazando  
-            results = self._obtener_ocr_avanzado().predict(                   # ← carga aquí si se necesita: Patrón se llama lazy initialization, inicializar solo cuando se necesita.     
-                ruta,            
-                use_doc_orientation_classify=True,                            # ← activa para fotos inclinadas
-                use_doc_unwarping=True,                                       # ← corrige perspectiva en fotos
-            )
+            results = self._obtener_ocr_avanzado().predict(ruta)                   # ← carga aquí si se necesita: Patrón se llama lazy initialization, inicializar solo cuando se necesita.     
          
             lineas, _ = self._extraer_lineas_y_scores(results)                # Extrae el contenido de las imagenes en una lista y una lista de puntaje score(0 a 1) que indica el nivel de confianza, ese puntaje indica si el modelo entendio o no el contenido que extrajo, dandole un puntaje 
 
@@ -164,7 +160,7 @@ class InvoiceOCRExtractor:
             for text, score in zip(texts, scores):
 
                 # Filtra el contenido, si su nivel de confianza es mayor a 0.5 lo toma en consideracion, sino lo descarta
-                if text.strip() and float(score) >= 0.5:
+                if text.strip() and float(score) >= 0.3:
                     lineas.append(text.strip())
                     scores.append(float(score))
 
@@ -196,9 +192,12 @@ class InvoiceOCRExtractor:
         return PaddleOCR(
             text_detection_model_name="PP-OCRv5_server_det",
             text_recognition_model_name="PP-OCRv5_server_rec",
-            use_doc_orientation_classify=False,
-            use_doc_unwarping=False,
-            use_textline_orientation=False,
+            use_doc_orientation_classify=True,                # ← activa para fotos inclinadas
+            use_doc_unwarping=True,                           # ← corrige perspectiva en fotos
+            use_textline_orientation=True,                    # ← ayuda con texto inclinado
+            text_det_thresh=0.2,                              # ← más sensible
+            text_det_box_thresh=0.4,                          # ← acepta cajas menos seguras
+            text_det_unclip_ratio=2.5,                        # ← más dilatación
             enable_mkldnn=False,
             lang="es",
         )

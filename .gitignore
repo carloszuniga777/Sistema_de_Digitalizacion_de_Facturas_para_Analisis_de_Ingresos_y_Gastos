@@ -20,3 +20,5 @@ ENV/
 logs/**
 
 README.html
+
+.installed

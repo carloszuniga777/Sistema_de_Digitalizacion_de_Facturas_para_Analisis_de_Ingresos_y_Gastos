@@ -33,7 +33,8 @@ CREATE_TABLE_SQL = '''
         monto_total          REAL,
         moneda               TEXT,
         monto_total_lempiras REAL,
-        tipo_factura         TEXT
+        tipo_factura         TEXT,
+        categoria            TEXT
     )
 '''
 
@@ -70,7 +71,8 @@ def cargar_sql(df: pd.DataFrame) -> bool:
         'monto_total', 
         'moneda', 
         'monto_total_lempiras', 
-        'tipo_factura'
+        'tipo_factura',
+        'categoria'
     ]
 
     # Valida que las columnas del dataframe sean las correctas 
@@ -90,11 +92,6 @@ def cargar_sql(df: pd.DataFrame) -> bool:
             # Iniciar transacción con bloqueo IMMEDIATE (previene escrituras concurrentes)
             conn.execute('BEGIN IMMEDIATE')
 
-            # Borrar las facturas de año actual
-            conn.execute(
-                "DELETE FROM tbl_facturas WHERE ano_factura = ?",
-                (ano_actual,)
-            )
 
             # Insertar nuevos datos
             df.to_sql(
@@ -103,6 +100,20 @@ def cargar_sql(df: pd.DataFrame) -> bool:
                 if_exists="append",
                 index=False,
                 method="multi"      # Para inserts por lotes (mejor rendimiento con muchos datos)
+            )
+
+
+
+            # Eliminar facaturas duplicadas dejando la factura mas antigua  
+            conn.execute(
+                """delete from tbl_facturas 
+                   where rowid in (select rowid from ( select rowid, 
+                                                              row_number() over (partition by numero_factura order by fecha_carga asc) as r
+                                                        from tbl_facturas 
+                                                      ) as t
+                                    where r > 1 
+                                  )    
+                """
             )
 
 

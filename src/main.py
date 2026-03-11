@@ -66,7 +66,7 @@ async def main():
     df = csv_a_dataframe(texto_estructurado)
 
 
-    if df.empty or df is None:
+    if df is None or df.empty:    
         logger.warning("⚠️ No se pudo procesar el CSV.")
         return
 
@@ -87,5 +87,5 @@ async def main():
 if __name__ == "__main__":
     df, texto_no_estructurado, texto_estructurado = asyncio.run(main())
 
-    if df.empty or df is None:
+    if df is None or df.empty:    
         logger.error("❌ El proceso no completó exitosamente.")

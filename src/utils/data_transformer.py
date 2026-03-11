@@ -28,7 +28,8 @@ def csv_a_dataframe(list_csv: list[str])-> pd.DataFrame | None:
         "concepto": str,
         "monto_total": str,  # Se leerá primero como str para poder limpiar comas
         "moneda": str,
-        "tipo_factura": str
+        "tipo_factura": str,
+        "categoria": str
     }
     
     
@@ -44,8 +45,6 @@ def csv_a_dataframe(list_csv: list[str])-> pd.DataFrame | None:
         logger.error(f"❌ Error leyendo el CSV: {e}")
         return None
     
-
-
     try:
         # Convertir 'importe' a float, asegurando que los valores con coma se conviertan correctamente
         df["monto_total"] = (
