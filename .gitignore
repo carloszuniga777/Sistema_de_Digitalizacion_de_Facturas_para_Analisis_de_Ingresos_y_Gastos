@@ -18,6 +18,8 @@ ENV/
 # Carpetas no tiene que dar seguimiento
 # Ignorar contenido de las carpetas
 logs/**
+src/cache/**
+
 
 README.html
 

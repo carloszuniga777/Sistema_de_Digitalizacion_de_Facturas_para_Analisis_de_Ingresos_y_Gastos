@@ -1,7 +1,7 @@
 import pandas as pd
 from io import StringIO
 import logging                   # Imprime print() en produccion 
-from src.utils.tasa_cambio_api import obtener_tasa_cambio
+from src.utils.tasa_cambio_dolar_api import obtener_tasa_cambio_dolar
 
 
 logger = logging.getLogger(__name__)  # ← __name__ toma el nombre del módulo automáticamente
@@ -64,7 +64,7 @@ def csv_a_dataframe(list_csv: list[str])-> pd.DataFrame | None:
         # Convertir las monedas a lempiras
         # Ultima actualizacion montos: 28-febrero-2026
 
-        tasa_cambio_dolares = obtener_tasa_cambio()
+        tasa_cambio_dolares = obtener_tasa_cambio_dolar()
 
         if tasa_cambio_dolares is None:
             logger.error("❌ No se pudo obtener la tasa de cambio del BCH")
